@@ -35,7 +35,6 @@ public class ModEvents {
         if(level instanceof ServerLevel world && world.getBlockState(event.getPos()).getBlock() == Blocks.BEACON && player.isCrouching() && event.getHand() == InteractionHand.MAIN_HAND && !event.getLevel().isClientSide() && world.getBlockEntity(event.getPos()) instanceof BeaconBlockEntity blockEntity) {
             CompoundTag nbt = blockEntity.getUpdateTag();
             int beaconLevel = nbt.getInt("Levels");
-            player.sendSystemMessage(Component.literal("Sneak Right Click on Beacon with level " + beaconLevel));
             BlockPos pos = event.getPos();
             BeaconDataObject data = LoadIt.beaconData.get(pos);
             if(data.chunkLoader) {
@@ -50,7 +49,7 @@ public class ModEvents {
             } else {
                 Utils.changeForceLoad(world, event.getPos(), beaconLevel - 1, 0, false);
                 Utils.loadAnimation(world, pos);
-                world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.GREEN + "Enabled chunkloading at " + Utils.toString(pos) + " (Radius : " + beaconLevel + ")"));
+                world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.GREEN + "Enabled chunkloading at " + Utils.toString(pos) + " (radius: " + beaconLevel + ")"));
             }
             data.chunkLoader = !data.chunkLoader;
             event.setCanceled(true);
