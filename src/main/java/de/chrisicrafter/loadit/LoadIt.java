@@ -24,6 +24,6 @@ public class LoadIt {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-
+        LOGGER.info("COMMON SETUP");
     }
 }
