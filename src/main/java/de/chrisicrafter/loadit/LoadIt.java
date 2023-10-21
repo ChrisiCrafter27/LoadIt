@@ -1,7 +1,6 @@
 package de.chrisicrafter.loadit;
 
 import com.mojang.logging.LogUtils;
-import de.chrisicrafter.loadit.block.ModBlocks;
 import de.chrisicrafter.loadit.utils.BeaconData;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -18,8 +17,6 @@ public class LoadIt {
 
     public LoadIt() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
-        ModBlocks.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
 
