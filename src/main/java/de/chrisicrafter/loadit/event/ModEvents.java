@@ -46,11 +46,11 @@ public class ModEvents {
                     Utils.changeForceLoad(world, pos, 5, 5, true);
                     Utils.overloadAnimation(world, pos);
                 }
-                world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.RED + "Disabled chunkloading at " + pos + " (Radius : " + beaconLevel + ")"), true);
+                world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.RED + "Disabled chunkloading at " + Utils.toString(pos) + " (Radius : " + beaconLevel + ")"));
             } else {
                 Utils.changeForceLoad(world, event.getPos(), beaconLevel - 1, 0, false);
                 Utils.loadAnimation(world, pos);
-                world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.GREEN + "Enabled chunkloading at " + pos + " (Radius : " + beaconLevel + ")"), true);
+                world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.GREEN + "Enabled chunkloading at " + Utils.toString(pos) + " (Radius : " + beaconLevel + ")"));
             }
             data.chunkLoader = !data.chunkLoader;
             event.setCanceled(true);

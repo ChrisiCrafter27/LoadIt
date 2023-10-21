@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 public class Utils {
@@ -41,6 +42,10 @@ public class Utils {
         }
 
         return true;
+    }
+
+    public static String toString(BlockPos pos) {
+        return "[x=" + pos.getX() + "y=" + pos.getY() + "z=" + pos.getZ() + "]";
     }
 
     public static void overloadAnimation(ServerLevel world, BlockPos blockPos) {
