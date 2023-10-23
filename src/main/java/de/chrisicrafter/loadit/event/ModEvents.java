@@ -1,6 +1,8 @@
 package de.chrisicrafter.loadit.event;
 
 import de.chrisicrafter.loadit.LoadIt;
+import de.chrisicrafter.loadit.networking.ModMessages;
+import de.chrisicrafter.loadit.networking.packet.DebugScreenDataS2CPacket;
 import de.chrisicrafter.loadit.utils.BeaconData;
 import de.chrisicrafter.loadit.utils.BeaconDataObject;
 import de.chrisicrafter.loadit.utils.Utils;
@@ -9,12 +11,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,6 +33,13 @@ public class ModEvents {
     private static int tickCount;
 
     @SubscribeEvent
+    public static void onPlayerJoined(EntityJoinLevelEvent event) {
+        if(!event.getLevel().isClientSide() && event.getEntity() instanceof ServerPlayer serverPlayer) {
+            ModMessages.sendToPlayer(new DebugScreenDataS2CPacket(LoadIt.beaconData), serverPlayer);
+        }
+    }
+
+    @SubscribeEvent
     public static void onBeaconShiftRightClick(PlayerInteractEvent.RightClickBlock event) {
         Player player = event.getEntity();
         LevelAccessor level = event.getLevel();
@@ -39,19 +50,22 @@ public class ModEvents {
             BeaconDataObject data = LoadIt.beaconData.get(pos);
             if(data.chunkLoader) {
                 if(beaconLevel == data.level) {
-                    Utils.changeForceLoad(world, pos, beaconLevel - 1, beaconLevel - 1, true);
+                    Utils.forceLoad(world, pos, beaconLevel, beaconLevel, true);
                     Utils.unloadAnimation(world, pos);
                 } else {
-                    Utils.changeForceLoad(world, pos, 5, 5, true);
+                    Utils.forceLoad(world, pos, 5, 5, true);
                     Utils.overloadAnimation(world, pos);
                 }
-                world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.RED + "Disabled chunkloading at " + Utils.toString(pos) + " (Radius : " + beaconLevel + ")"));
-            } else {
-                Utils.changeForceLoad(world, event.getPos(), beaconLevel - 1, 0, false);
+                world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.RED + "Disabled chunkloading at chunk " + Utils.toString(pos) + " (Radius : " + beaconLevel + ")"));
+                data.chunkLoader = false;
+            } else if(!LoadIt.beaconData.loadedChunks.contains(new BlockPos(pos.getX() / 16, 0, pos.getZ() / 16))) {
+                Utils.forceLoad(world, event.getPos(), beaconLevel, 0, false);
                 Utils.loadAnimation(world, pos);
-                world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.GREEN + "Enabled chunkloading at " + Utils.toString(pos) + " (radius: " + beaconLevel + ")"));
+                world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.GREEN + "Enabled chunkloading at chunk " + Utils.toString(pos) + " (radius: " + beaconLevel + ")"));
+                data.chunkLoader = true;
+            } else {
+                world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.YELLOW + "There is already an active chunkloader in this chunk"));
             }
-            data.chunkLoader = !data.chunkLoader;
             event.setCanceled(true);
         }
     }
@@ -72,7 +86,7 @@ public class ModEvents {
         if(level instanceof ServerLevel world && !event.getLevel().isClientSide() && !world.getBlockState(event.getPos()).is(Blocks.BEACON)) {
             if(LoadIt.beaconData == null) LoadIt.beaconData = world.getDataStorage().computeIfAbsent(BeaconData.factory(), "beacon_data");
             if(LoadIt.beaconData.getPositions().contains(event.getPos())) {
-                LoadIt.beaconData.removePosition(event.getPos());
+                LoadIt.beaconData.removeAndUnload(world, event.getPos());
                 LoadIt.beaconData.setDirty();
             }
         }
@@ -82,7 +96,7 @@ public class ModEvents {
     public static void onLevelTick(TickEvent.LevelTickEvent event) {
         if(!event.level.isClientSide() && event.level instanceof ServerLevel world) {
             tickCount++;
-            if(tickCount >= 500) {
+            if(tickCount >= 20) {
                 if(LoadIt.beaconData == null) LoadIt.beaconData = world.getDataStorage().computeIfAbsent(BeaconData.factory(), "beacon_data");
 
                 ArrayList<BlockPos> toUnload = new ArrayList<>();
@@ -100,7 +114,7 @@ public class ModEvents {
                             if(savedLevel != actualLevel) {
                                 if(isLoader) {
                                     Utils.overloadAnimation(world, blockPos);
-                                    Utils.changeForceLoad(world, blockPos, savedLevel, savedLevel, true);
+                                    Utils.forceLoad(world, blockPos, Math.max(savedLevel, actualLevel), Math.max(savedLevel, actualLevel), true);
                                     toUnload.add(blockPos);
                                 }
                                 toChangeLevel.put(blockPos, actualLevel);
@@ -116,12 +130,14 @@ public class ModEvents {
                     LoadIt.beaconData.get(pos).chunkLoader = false;
                 }
                 for(BlockPos pos : toRemove) {
-                    LoadIt.beaconData.removePosition(pos);
+                    LoadIt.beaconData.removeAndUnload(world, pos);
                 }
                 for(Map.Entry<BlockPos, Integer> map : toChangeLevel.entrySet()) {
                     LoadIt.beaconData.get(map.getKey()).level = map.getValue();
                 }
                 if(setDirty) LoadIt.beaconData.setDirty();
+
+                if(LoadIt.sendData) ModMessages.sendToPlayer(new DebugScreenDataS2CPacket(LoadIt.beaconData));
 
                 tickCount = 0;
             }
