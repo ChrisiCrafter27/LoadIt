@@ -14,9 +14,8 @@ import org.slf4j.Logger;
 @Mod(LoadIt.MOD_ID)
 public class LoadIt {
     public static final String MOD_ID = "loadit";
-    public static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static BeaconData beaconData = null;
-    public static boolean sendData = false;
 
     public LoadIt() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();

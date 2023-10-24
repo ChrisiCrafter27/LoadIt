@@ -38,12 +38,6 @@ public class BeaconData extends SavedData {
     }
 
     @Override
-    public void setDirty() {
-        super.setDirty();
-        LoadIt.sendData = true;
-    }
-
-    @Override
     public CompoundTag save(CompoundTag tag) {
         //save to tag
         int size;
@@ -109,24 +103,16 @@ public class BeaconData extends SavedData {
             }
         }
         if(!LoadIt.getBeaconData(world).loadedChunks.containsAll(chunksToLoad) || !chunksToLoad.containsAll(LoadIt.getBeaconData(world).loadedChunks)) {
-            LoadIt.LOGGER.info("Update Difference");
-            LoadIt.LOGGER.info("Loaded Chunks: " + LoadIt.getBeaconData(world).loadedChunks.size());
-            LoadIt.LOGGER.info("Chunks to load: " + chunksToLoad.size());
             for(ChunkPos pos : LoadIt.getBeaconData(world).loadedChunks) {
                 if(!chunksToLoad.contains(pos)) forceLoad(world, pos, false);
-                LoadIt.LOGGER.info("Unload Chunk");
             }
             for(ChunkPos pos : chunksToLoad) {
                 if(!LoadIt.getBeaconData(world).loadedChunks.contains(pos)) forceLoad(world, pos, true);
-                LoadIt.LOGGER.info("Load Chunk");
             }
             LoadIt.getBeaconData(world).loadedChunks.removeIf((ignored) -> true);
             LoadIt.getBeaconData(world).loadedChunks.addAll(chunksToLoad);
-            LoadIt.LOGGER.info("Loaded Chunks: " + LoadIt.getBeaconData(world).loadedChunks.size());
             ModMessages.sendToPlayer(new DebugScreenDataS2CPacket(LoadIt.getBeaconData(world)));
             LoadIt.getBeaconData(world).setDirty();
-            LoadIt.LOGGER.info("Update End");
-            LoadIt.LOGGER.info(" ");
         }
     }
 
