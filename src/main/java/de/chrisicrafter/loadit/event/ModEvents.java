@@ -4,6 +4,8 @@ import de.chrisicrafter.loadit.LoadIt;
 import de.chrisicrafter.loadit.networking.ModMessages;
 import de.chrisicrafter.loadit.networking.packet.DebugScreenDataS2CPacket;
 import de.chrisicrafter.loadit.utils.BeaconData;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -30,7 +32,8 @@ public class ModEvents {
     @SubscribeEvent
     public static void onBeaconShiftRightClick(PlayerInteractEvent.RightClickBlock event) {
         if(event.getLevel() instanceof ServerLevel world && event.getEntity() instanceof ServerPlayer player && world.getBlockState(event.getPos()).getBlock() == Blocks.BEACON && player.isCrouching() && event.getHand() == InteractionHand.MAIN_HAND && !event.getLevel().isClientSide()) {
-            LoadIt.getBeaconData(world).beaconShiftUse(world, player, event.getPos());
+            if(event.getLevel().dimensionTypeId().equals(BuiltinDimensionTypes.OVERWORLD)) LoadIt.getBeaconData(world).beaconShiftUse(world, player, event.getPos());
+            else world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.RED + "Chunkloaders only work in the overworld."));
             event.setCanceled(true);
         }
     }
