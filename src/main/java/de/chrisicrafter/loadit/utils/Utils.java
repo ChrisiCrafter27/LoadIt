@@ -1,6 +1,5 @@
 package de.chrisicrafter.loadit.utils;
 
-import de.chrisicrafter.loadit.LoadIt;
 import de.chrisicrafter.loadit.client.ClientDebugScreenData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -8,8 +7,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
