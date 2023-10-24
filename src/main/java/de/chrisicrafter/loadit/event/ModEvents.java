@@ -17,8 +17,6 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import javax.swing.plaf.IconUIResource;
-
 @Mod.EventBusSubscriber(modid = LoadIt.MOD_ID)
 public class ModEvents {
 
