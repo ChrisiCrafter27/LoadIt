@@ -3,6 +3,7 @@ package de.chrisicrafter.loadit;
 import com.mojang.logging.LogUtils;
 import de.chrisicrafter.loadit.networking.ModMessages;
 import de.chrisicrafter.loadit.utils.BeaconData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -14,7 +15,7 @@ import org.slf4j.Logger;
 public class LoadIt {
     public static final String MOD_ID = "loadit";
     public static final Logger LOGGER = LogUtils.getLogger();
-    public static BeaconData beaconData = null;
+    private static BeaconData beaconData = null;
     public static boolean sendData = false;
 
     public LoadIt() {
@@ -30,9 +31,11 @@ public class LoadIt {
 
         event.enqueueWork(() -> {
             ModMessages.register();
-
         });
+    }
 
-
+    public static BeaconData getBeaconData(ServerLevel world) {
+        if(beaconData == null) beaconData = world.getDataStorage().computeIfAbsent(BeaconData.factory(), "beacon_data");
+        return beaconData;
     }
 }

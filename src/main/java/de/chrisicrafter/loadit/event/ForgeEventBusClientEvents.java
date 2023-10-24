@@ -2,10 +2,14 @@ package de.chrisicrafter.loadit.event;
 
 import de.chrisicrafter.loadit.LoadIt;
 import de.chrisicrafter.loadit.utils.Utils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -34,6 +38,14 @@ public class ForgeEventBusClientEvents {
                 leftTexts.add("");
                 leftTexts.add(debugString);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onBeaconTooltip(ItemTooltipEvent event) {
+        if(event.getItemStack().is(Items.BEACON)) {
+            event.getToolTip().add(Component.literal(ChatFormatting.GRAY + "Place and sneak-use to switch chunkloading."));
+            event.getToolTip().add(Component.literal(ChatFormatting.GRAY + "The loading-radius depends on beacon level."));
         }
     }
 }
