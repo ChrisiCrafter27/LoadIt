@@ -1,39 +1,29 @@
 package de.chrisicrafter.loadit.utils;
 
 import de.chrisicrafter.loadit.client.ClientDebugScreenData;
+import de.chrisicrafter.loadit.data.BeaconData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 public class Utils {
-    public static void broadcastMessage(String message) {
-        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        if (server != null) {
-            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                player.sendSystemMessage(Component.literal(message));
-            }
-        }
-    }
 
-    public static int beaconLevel(ServerLevel world, BlockPos pos) {
-        BeaconBlockEntity blockEntity = (BeaconBlockEntity) world.getBlockEntity(pos);
+    public static int beaconLevel(ServerLevel level, BlockPos pos) {
+        BeaconBlockEntity blockEntity = (BeaconBlockEntity) level.getBlockEntity(pos);
+        assert blockEntity != null;
         return blockEntity.getUpdateTag().getInt("Levels");
     }
 
     @OnlyIn(Dist.CLIENT)
     public static String getDebugString(double x, double z) {
         ChunkPos pos = toChunkPos(x, z);
-        if(loaded(ClientDebugScreenData.getBeaconData(), pos) && chunkLoader(ClientDebugScreenData.getBeaconData(), pos)) return ChatFormatting.YELLOW + "Active chunkloader in this chunk";
-        else if(loaded(ClientDebugScreenData.getBeaconData(), pos)) return ChatFormatting.GREEN + "Chunk is forceloaded by LoadIt";
-        else return ChatFormatting.WHITE + "Chunk is not forceloaded by LoadIt";
+        if(loaded(ClientDebugScreenData.getBeaconData(), pos) && chunkLoader(ClientDebugScreenData.getBeaconData(), pos)) return ChatFormatting.YELLOW + "Active chunk loader in this chunk";
+        else if(loaded(ClientDebugScreenData.getBeaconData(), pos)) return ChatFormatting.GREEN + "Chunk is force loaded by LoadIt";
+        else return ChatFormatting.WHITE + "Chunk is not force loaded by LoadIt";
     }
 
     public static boolean loaded(BeaconData data, ChunkPos pos) {

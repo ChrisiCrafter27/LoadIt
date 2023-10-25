@@ -1,8 +1,9 @@
-package de.chrisicrafter.loadit.utils;
+package de.chrisicrafter.loadit.data;
 
 import de.chrisicrafter.loadit.LoadIt;
 import de.chrisicrafter.loadit.networking.ModMessages;
 import de.chrisicrafter.loadit.networking.packet.DebugScreenDataS2CPacket;
+import de.chrisicrafter.loadit.utils.Utils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -16,6 +17,7 @@ import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.saveddata.SavedData;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -38,7 +40,7 @@ public class BeaconData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag) {
+    public @NotNull CompoundTag save(CompoundTag tag) {
         //save to tag
         int size;
 
@@ -76,43 +78,43 @@ public class BeaconData extends SavedData {
         return new BeaconData(loaderPositions, loadedChunks);
     }
 
-    public void beaconShiftUse(ServerLevel world, ServerPlayer player, BlockPos blockPos) {
+    public void beaconShiftUse(ServerLevel level, ServerPlayer player, BlockPos blockPos) {
         ChunkPos chunkPos = Utils.toChunkPos(blockPos);
-        if(Utils.chunkLoader(LoadIt.getBeaconData(world), blockPos)) {
-            LoadIt.getBeaconData(world).loaderPositions.remove(blockPos);
-            world.playSound(null, blockPos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.0F, 1.0F);
-            world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.RED + "Disabled chunkloading at chunk " + Utils.toString(chunkPos) + " (Radius : " + Utils.beaconLevel(world, blockPos) + ")"));
-        } else if(!Utils.chunkLoader(LoadIt.getBeaconData(world), chunkPos)) {
-            LoadIt.getBeaconData(world).loaderPositions.add(blockPos);
-            world.playSound(null, blockPos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0F, 1.0F);
-            world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.GREEN + "Enabled chunkloading at chunk " + Utils.toString(chunkPos) + " (radius: " + Utils.beaconLevel(world, blockPos) + ")"));
+        if(Utils.chunkLoader(LoadIt.getBeaconData(level), blockPos)) {
+            loaderPositions.remove(blockPos);
+            level.playSound(null, blockPos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            player.sendSystemMessage(Component.literal(ChatFormatting.RED + "Disabled chunk loading at chunk " + Utils.toString(chunkPos) + " in " + level.dimension().registry()), true);
+        } else if(!Utils.chunkLoader(LoadIt.getBeaconData(level), chunkPos)) {
+            loaderPositions.add(blockPos);
+            level.playSound(null, blockPos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            player.sendSystemMessage(Component.literal(ChatFormatting.GREEN + "Enabled chunk loading at chunk " + Utils.toString(chunkPos) + " in " + level.dimension().registry()), true);
         } else {
-            world.playSound(null, blockPos, SoundEvents.BEACON_POWER_SELECT, SoundSource.BLOCKS, 1.0F, 1.0F);
-            world.getServer().getPlayerList().getPlayer(player.getUUID()).sendSystemMessage(Component.literal(ChatFormatting.YELLOW + "There is already an active chunkloader in this chunk"));
+            level.playSound(null, blockPos, SoundEvents.BEACON_POWER_SELECT, SoundSource.BLOCKS, 1.0F, 1.0F);
+            player.sendSystemMessage(Component.literal(ChatFormatting.YELLOW + "There is already an active chunk loader in this chunk"), true);
         }
     }
 
-    public static void update(ServerLevel world) {
+    public void update(ServerLevel level) {
         ArrayList<ChunkPos> chunksToLoad = new ArrayList<>();
-        LoadIt.getBeaconData(world).loaderPositions.removeIf(pos -> !world.getBlockState(pos).is(Blocks.BEACON));
-        for(BlockPos blockPos : LoadIt.getBeaconData(world).loaderPositions) {
-            int beaconLevel = Utils.beaconLevel(world, blockPos);
+        loaderPositions.removeIf(pos -> !level.getBlockState(pos).is(Blocks.BEACON));
+        for(BlockPos blockPos : loaderPositions) {
+            int beaconLevel = Utils.beaconLevel(level, blockPos);
             ChunkPos chunkPos = Utils.toChunkPos(blockPos);
             for(ChunkPos pos : getChunks(chunkPos, beaconLevel)) {
                 if(!chunksToLoad.contains(pos)) chunksToLoad.add(pos);
             }
         }
-        if(!LoadIt.getBeaconData(world).loadedChunks.containsAll(chunksToLoad) || !chunksToLoad.containsAll(LoadIt.getBeaconData(world).loadedChunks)) {
-            for(ChunkPos pos : LoadIt.getBeaconData(world).loadedChunks) {
-                if(!chunksToLoad.contains(pos)) forceLoad(world, pos, false);
+        if(!loadedChunks.containsAll(chunksToLoad) || !chunksToLoad.containsAll(loadedChunks)) {
+            for(ChunkPos pos : loadedChunks) {
+                if(!chunksToLoad.contains(pos)) forceLoad(level, pos, false);
             }
             for(ChunkPos pos : chunksToLoad) {
-                if(!LoadIt.getBeaconData(world).loadedChunks.contains(pos)) forceLoad(world, pos, true);
+                if(!loadedChunks.contains(pos)) forceLoad(level, pos, true);
             }
-            LoadIt.getBeaconData(world).loadedChunks.removeIf((ignored) -> true);
-            LoadIt.getBeaconData(world).loadedChunks.addAll(chunksToLoad);
-            ModMessages.sendToPlayer(new DebugScreenDataS2CPacket(LoadIt.getBeaconData(world)));
-            LoadIt.getBeaconData(world).setDirty();
+            loadedChunks.removeIf((ignored) -> true);
+            loadedChunks.addAll(chunksToLoad);
+            ModMessages.sendToPlayer(new DebugScreenDataS2CPacket(LoadIt.getBeaconData(level)), level.dimension());
+            setDirty();
         }
     }
 
@@ -130,7 +132,7 @@ public class BeaconData extends SavedData {
         return list;
     }
 
-    private static void forceLoad(ServerLevel world, ChunkPos pos, boolean load) {
-        world.setChunkForced(pos.x, pos.z, load);
+    private static void forceLoad(ServerLevel level, ChunkPos pos, boolean load) {
+        level.setChunkForced(pos.x, pos.z, load);
     }
 }

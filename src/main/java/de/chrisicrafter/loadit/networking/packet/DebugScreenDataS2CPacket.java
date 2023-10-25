@@ -1,7 +1,7 @@
 package de.chrisicrafter.loadit.networking.packet;
 
 import de.chrisicrafter.loadit.client.ClientDebugScreenData;
-import de.chrisicrafter.loadit.utils.BeaconData;
+import de.chrisicrafter.loadit.data.BeaconData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.event.network.CustomPayloadEvent;
@@ -21,10 +21,7 @@ public class DebugScreenDataS2CPacket {
         buf.writeNbt(tag);
     }
 
-    public boolean handle(CustomPayloadEvent.Context context) {
-        context.enqueueWork(() -> {
-            ClientDebugScreenData.set(BeaconData.load(tag));
-        });
-        return true;
+    public void handle(CustomPayloadEvent.Context context) {
+        context.enqueueWork(() -> ClientDebugScreenData.set(BeaconData.load(tag)));
     }
 }

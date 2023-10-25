@@ -28,6 +28,7 @@ public class ForgeEventBusClientEvents {
                 break;
             }
         }
+        assert Minecraft.getInstance().player != null;
         String debugString = Utils.getDebugString(Minecraft.getInstance().player.position().x, Minecraft.getInstance().player.position().z);
         if(!debugString.isEmpty()) {
             if(insertAfter != null) {
@@ -43,7 +44,7 @@ public class ForgeEventBusClientEvents {
     @SubscribeEvent
     public static void onBeaconTooltip(ItemTooltipEvent event) {
         if(event.getItemStack().is(Items.BEACON)) {
-            event.getToolTip().add(Component.literal(ChatFormatting.GRAY + "Place and sneak-use to switch chunkloading."));
+            event.getToolTip().add(Component.literal(ChatFormatting.GRAY + "Place and sneak-use to switch chunk loading."));
             event.getToolTip().add(Component.literal(ChatFormatting.GRAY + "The loading-radius depends on beacon level."));
         }
     }

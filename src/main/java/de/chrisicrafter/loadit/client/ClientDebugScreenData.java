@@ -1,6 +1,6 @@
 package de.chrisicrafter.loadit.client;
 
-import de.chrisicrafter.loadit.utils.BeaconData;
+import de.chrisicrafter.loadit.data.BeaconData;
 
 public class ClientDebugScreenData {
     private static BeaconData data;
